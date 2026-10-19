@@ -6,9 +6,15 @@ export const LoadingSpinner: React.FC<{ message?: string; className?: string }> 
   className = '',
 }) => {
   return (
-    <div className={`flex flex-col items-center justify-center p-8 gap-3 text-slate-400 ${className}`}>
-      <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
-      <span className="text-xs font-medium uppercase tracking-wider">{message}</span>
+    <div
+      role="status"
+      aria-live="polite"
+      className={`flex flex-col items-center justify-center p-8 gap-3 text-forge-text-muted ${className}`}
+    >
+      <Loader2 className="w-6 h-6 animate-spin text-forge-accent" />
+      <span className="text-xs font-medium uppercase tracking-wider text-forge-text-secondary">
+        {message}
+      </span>
     </div>
   );
 };

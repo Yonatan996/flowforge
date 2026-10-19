@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { Webhook, Calendar, Play, Copy, Check } from 'lucide-react';
+import { Webhook, Calendar, Play, Copy, Check, Info } from 'lucide-react';
 import { TriggerDefinition } from '../../types';
 
 interface TriggerConfigCardProps {
   trigger: TriggerDefinition;
   webhookUrl?: string;
-  status: string;
+  status?: string;
   onChange: (trigger: TriggerDefinition) => void;
 }
 
 export const TriggerConfigCard: React.FC<TriggerConfigCardProps> = ({
   trigger,
   webhookUrl,
-  status,
+  status: _status,
   onChange,
 }) => {
   const [copied, setCopied] = useState(false);
@@ -41,13 +41,33 @@ export const TriggerConfigCard: React.FC<TriggerConfigCardProps> = ({
   };
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-sm space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-100">Workflow Trigger</h3>
-          <p className="text-xs text-slate-400 mt-0.5">Determine how and when this automated workflow begins execution.</p>
+    <div className="relative rounded-xl border border-forge-border bg-forge-surface p-5 shadow-xs space-y-4 transition-colors">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="p-2 rounded-lg bg-[var(--accent-subtle)] border border-forge-accent/20 text-forge-accent shrink-0">
+            {trigger.type === 'webhook' ? (
+              <Webhook className="w-4 h-4" />
+            ) : trigger.type === 'scheduled' ? (
+              <Calendar className="w-4 h-4" />
+            ) : (
+              <Play className="w-4 h-4" />
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-semibold text-forge-text">Workflow Trigger</h3>
+              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-forge-surface-secondary text-forge-accent font-semibold uppercase">
+                {trigger.type}
+              </span>
+            </div>
+            <p className="text-xs text-forge-text-secondary mt-0.5">
+              Initiates workflow execution pipeline when invoked.
+            </p>
+          </div>
         </div>
-        <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-1">
+
+        {/* Trigger Type Toggle */}
+        <div className="flex rounded-lg border border-forge-border bg-forge-surface-secondary p-1">
           {[
             { id: 'webhook', label: 'Webhook', icon: Webhook },
             { id: 'scheduled', label: 'Scheduled', icon: Calendar },
@@ -62,8 +82,8 @@ export const TriggerConfigCard: React.FC<TriggerConfigCardProps> = ({
                 onClick={() => handleTypeChange(item.id as any)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${
                   isSelected
-                    ? 'bg-slate-800 text-emerald-400 shadow-sm border border-slate-700/60'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-forge-surface text-forge-accent shadow-xs border border-forge-border font-semibold'
+                    : 'text-forge-text-secondary hover:text-forge-text'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -76,94 +96,90 @@ export const TriggerConfigCard: React.FC<TriggerConfigCardProps> = ({
 
       {/* Trigger Specific View */}
       {trigger.type === 'webhook' && (
-        <div className="p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 space-y-3">
+        <div className="p-4 rounded-lg bg-forge-surface-secondary/60 border border-forge-border space-y-3">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Webhook Endpoint URL</label>
+            <label className="block text-xs font-medium text-forge-text mb-1">
+              Webhook Endpoint URL
+            </label>
             {webhookUrl ? (
               <div className="flex items-center gap-2">
                 <input
                   type="text"
                   readOnly
                   value={webhookUrl}
-                  className="flex-1 px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs font-mono text-emerald-400 select-all"
+                  className="flex-1 px-3 py-2 bg-forge-surface border border-forge-border rounded-lg text-xs font-mono text-forge-accent select-all focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={handleCopyUrl}
-                  className="px-3 py-2 bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-2 bg-forge-surface hover:bg-forge-surface-hover text-forge-text text-xs font-medium rounded-lg border border-forge-border flex items-center gap-1.5 transition-colors shadow-2xs"
                 >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Copied' : 'Copy'}</span>
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-forge-success" />
+                      <span className="text-forge-success">Copied</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy</span>
+                    </>
+                  )}
                 </button>
               </div>
             ) : (
-              <p className="text-xs text-amber-400/90 font-mono">
-                Webhook URL will be activated when this workflow is saved & activated.
+              <p className="text-xs text-forge-warning font-mono p-2 rounded bg-[var(--warning-subtle)] border border-[var(--warning)]/20">
+                Webhook URL will be generated and secured upon saving this workflow.
               </p>
             )}
           </div>
-          <div className="text-[11px] text-slate-400 leading-relaxed space-y-1">
-            <p>• Accepts JSON payloads up to 1 MB with standard HTTP POST.</p>
-            <p>• Include header <code className="text-slate-200 bg-slate-900 px-1 py-0.5 rounded">Idempotency-Key</code> for at-most-once deduplication.</p>
+
+          <div className="flex items-center gap-2 text-[11px] text-forge-text-secondary font-mono pt-1">
+            <Info className="w-3.5 h-3.5 text-forge-text-muted shrink-0" />
+            <span>Accepts HTTP POST requests with JSON payload. Deduplicates with Idempotency-Key.</span>
           </div>
         </div>
       )}
 
       {trigger.type === 'scheduled' && (
-        <div className="p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Cron Expression (UTC)
-              </label>
-              <input
-                type="text"
-                value={trigger.config?.cron_expression || '*/15 * * * *'}
-                onChange={(e) =>
-                  onChange({
-                    ...trigger,
-                    config: { ...trigger.config, cron_expression: e.target.value },
-                  })
-                }
-                placeholder="*/15 * * * *"
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Or Interval (Seconds)
-              </label>
-              <input
-                type="number"
-                min={10}
-                value={trigger.config?.interval_seconds || ''}
-                onChange={(e) =>
-                  onChange({
-                    ...trigger,
-                    config: {
-                      ...trigger.config,
-                      interval_seconds: e.target.value ? Number(e.target.value) : undefined,
-                    },
-                  })
-                }
-                placeholder="e.g. 60"
-                className="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
+        <div className="p-4 rounded-lg bg-forge-surface-secondary/60 border border-forge-border space-y-3">
+          <div>
+            <label className="block text-xs font-medium text-forge-text mb-1">
+              Cron Expression (UTC)
+            </label>
+            <input
+              type="text"
+              value={trigger.config?.cron_expression || '*/15 * * * *'}
+              onChange={(e) =>
+                onChange({
+                  ...trigger,
+                  config: { ...trigger.config, cron_expression: e.target.value },
+                })
+              }
+              placeholder="e.g. */15 * * * * or 0 9 * * 1-5"
+              className="w-full px-3 py-2 bg-forge-surface border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
+            />
+            <p className="text-[11px] text-forge-text-muted mt-1 font-mono">
+              Standard 5-part UTC cron: minute hour day-of-month month day-of-week
+            </p>
           </div>
-          <p className="text-[11px] text-slate-400">
-            Schedules execute in UTC and are dispatched via the distributed background queue.
-          </p>
         </div>
       )}
 
       {trigger.type === 'manual' && (
-        <div className="p-3.5 rounded-lg bg-slate-950/70 border border-slate-800/80">
-          <p className="text-xs text-slate-300">
-            Manual triggers execute on demand via the dashboard or API, accepting an optional JSON test payload.
+        <div className="p-4 rounded-lg bg-forge-surface-secondary/60 border border-forge-border space-y-2">
+          <p className="text-xs text-forge-text-secondary leading-relaxed">
+            Manual triggers allow on-demand execution via the FlowForge web interface or through direct API dispatch.
           </p>
+          <div className="text-[11px] text-forge-text-muted font-mono flex items-center gap-1.5">
+            <Info className="w-3.5 h-3.5" />
+            <span>Executes with user-provided JSON payload in test run modal or API dispatch.</span>
+          </div>
         </div>
       )}
+
+      {/* Output Port at bottom of trigger node */}
+      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-forge-surface border-2 border-forge-accent transition-colors" />
     </div>
   );
 };

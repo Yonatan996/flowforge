@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Zap, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { ThemeToggle } from '../components/common/ThemeToggle';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -31,70 +32,79 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-slate-950 font-sans">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/90 p-8 shadow-2xl backdrop-blur-sm">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-forge-bg font-sans transition-colors relative">
+      {/* Theme Toggle Top Right */}
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+
+      <div className="w-full max-w-md rounded-2xl border border-forge-border bg-forge-surface p-8 shadow-xl transition-all">
         {/* Logo & Heading */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-emerald-600 shadow-lg shadow-emerald-600/30 text-white mb-3">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-forge-accent shadow-md shadow-forge-accent/25 text-white mb-3">
             <Zap className="w-6 h-6 fill-white" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-100">Welcome to FlowForge</h1>
-          <p className="text-sm text-slate-400 mt-1">Sign in to manage and monitor your automation workflows</p>
+          <h1 className="text-2xl font-bold tracking-tight text-forge-text">
+            Welcome to FlowForge
+          </h1>
+          <p className="text-xs sm:text-sm text-forge-text-secondary mt-1">
+            Sign in to manage and monitor developer automation pipelines
+          </p>
         </div>
 
         {error && (
-          <div className="mb-6 p-3.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <div className="mb-6 p-3.5 rounded-lg bg-[var(--danger-subtle)] border border-[var(--danger)]/30 text-[var(--danger)] text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">Email Address</label>
+            <label className="block text-xs font-medium text-forge-text mb-1.5">Email Address</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@company.com"
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3.5 py-2.5 bg-forge-surface-secondary border border-forge-border rounded-lg text-sm text-forge-text placeholder:text-forge-text-muted focus:outline-none focus:border-forge-accent focus:ring-2 focus:ring-[var(--focus-ring)] transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">Password</label>
+            <label className="block text-xs font-medium text-forge-text mb-1.5">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-emerald-500 transition-colors"
+              className="w-full px-3.5 py-2.5 bg-forge-surface-secondary border border-forge-border rounded-lg text-sm text-forge-text placeholder:text-forge-text-muted focus:outline-none focus:border-forge-accent focus:ring-2 focus:ring-[var(--focus-ring)] transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full mt-2 py-2.5 px-4 bg-forge-accent hover:bg-forge-accent-hover text-white font-medium text-sm rounded-lg transition-colors shadow-xs disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
             <span>Sign In</span>
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-slate-800/80 text-center space-y-3">
-          <p className="text-xs text-slate-400">
+        <div className="mt-6 pt-6 border-t border-forge-border text-center space-y-3">
+          <p className="text-xs text-forge-text-secondary">
             Don't have an account?{' '}
-            <Link to="/register" className="text-emerald-400 hover:text-emerald-300 font-medium">
+            <Link to="/register" className="text-forge-accent hover:text-forge-accent-hover font-medium">
               Create an account
             </Link>
           </p>
           <button
             type="button"
             onClick={handleDemoLogin}
-            className="text-xs text-slate-500 hover:text-slate-300 underline"
+            className="text-xs text-forge-text-muted hover:text-forge-text underline font-mono"
           >
             Fill Demo Credentials
           </button>

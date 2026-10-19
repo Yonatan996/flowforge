@@ -87,6 +87,16 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
     setErrors([]);
   }, [step, isOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleValidateAndSave = () => {
@@ -95,7 +105,7 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
     const cleanKey = key.trim();
     if (!cleanKey) {
       errs.push('Step Key identifier is required');
-    } else if (!/^[a-zA-Z0-9_\-]+$/.test(cleanKey)) {
+    } else if (!/^[a-zA-Z0-9_-]+$/.test(cleanKey)) {
       errs.push('Step Key can only contain letters, numbers, underscores, and dashes');
     } else if (!step && existingKeys.includes(cleanKey)) {
       errs.push(`Step Key '${cleanKey}' is already used in this workflow`);
@@ -210,17 +220,28 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150">
-      <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-xl border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="step-config-modal-title"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs transition-opacity duration-150"
+    >
+      <div className="w-full max-w-2xl max-h-[90vh] flex flex-col rounded-xl border border-forge-border bg-forge-surface shadow-2xl overflow-hidden transition-all">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-850">
-          <h3 className="text-base font-semibold text-slate-100">
-            {step ? 'Edit Action Configuration' : 'Add Workflow Action'}
-          </h3>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-forge-border bg-forge-surface-secondary/50">
+          <div>
+            <h3 id="step-config-modal-title" className="text-base font-semibold text-forge-text">
+              {step ? 'Edit Action Configuration' : 'Add Workflow Action'}
+            </h3>
+            <p className="text-xs text-forge-text-secondary mt-0.5">
+              Configure parameters, inputs, and retry logic for this pipeline step
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 text-slate-400 hover:text-white rounded-lg transition-colors"
+            aria-label="Close action modal"
+            className="p-1.5 text-forge-text-muted hover:text-forge-text rounded-lg hover:bg-forge-surface-hover transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -229,12 +250,12 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
         {/* Content Form */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
           {errors.length > 0 && (
-            <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs space-y-1">
-              <div className="flex items-center gap-1.5 font-semibold text-rose-400">
-                <AlertCircle className="w-4 h-4" />
+            <div className="p-3.5 rounded-lg bg-[var(--danger-subtle)] border border-[var(--danger)]/30 text-[var(--danger)] text-xs space-y-1">
+              <div className="flex items-center gap-1.5 font-semibold">
+                <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>Please address the following validation issues:</span>
               </div>
-              <ul className="list-disc list-inside pl-1 space-y-0.5">
+              <ul className="list-disc list-inside pl-1 space-y-0.5 font-mono">
                 {errors.map((err, i) => (
                   <li key={i}>{err}</li>
                 ))}
@@ -243,41 +264,41 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
           )}
 
           {/* Basic Info */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Action Name <span className="text-rose-400">*</span>
+              <label className="block text-xs font-medium text-forge-text mb-1">
+                Action Name <span className="text-forge-danger">*</span>
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g. Notify Payment Service"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-sm text-forge-text focus:outline-none focus:border-forge-accent focus:ring-2 focus:ring-[var(--focus-ring)] transition-colors"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">
-                Step Key Identifier <span className="text-rose-400">*</span>
+              <label className="block text-xs font-medium text-forge-text mb-1">
+                Step Key Identifier <span className="text-forge-danger">*</span>
               </label>
               <input
                 type="text"
                 value={key}
                 onChange={(e) => setKey(e.target.value)}
                 placeholder="e.g. notify_payment"
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
+                className="w-full px-3.5 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-sm font-mono text-forge-text focus:outline-none focus:border-forge-accent focus:ring-2 focus:ring-[var(--focus-ring)] transition-colors"
               />
             </div>
           </div>
 
           {/* Action Type Picker */}
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1.5">Action Type</label>
-            <div className="grid grid-cols-3 gap-2">
+            <label className="block text-xs font-medium text-forge-text mb-1.5">Action Type</label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
               {[
                 { id: 'http_request', label: 'HTTP Request', desc: 'Outbound REST API call' },
                 { id: 'json_transform', label: 'JSON Transform', desc: 'Select, rename, or construct' },
-                { id: 'condition', label: 'Condition Branch', desc: 'Branch or skip steps' },
+                { id: 'condition', label: 'Condition Branch', desc: 'Branch or evaluate predicates' },
               ].map((opt) => (
                 <button
                   key={opt.id}
@@ -285,12 +306,12 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
                   onClick={() => setType(opt.id as StepType)}
                   className={`p-3 text-left rounded-lg border transition-all ${
                     type === opt.id
-                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                      : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-400'
+                      ? 'bg-[var(--accent-subtle)] border-forge-accent text-forge-accent ring-1 ring-forge-accent'
+                      : 'bg-forge-surface-secondary border-forge-border hover:border-forge-border-subtle text-forge-text-secondary hover:text-forge-text'
                   }`}
                 >
-                  <div className="text-xs font-semibold text-slate-200">{opt.label}</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">{opt.desc}</div>
+                  <div className="text-xs font-semibold">{opt.label}</div>
+                  <div className="text-[11px] text-forge-text-muted mt-0.5">{opt.desc}</div>
                 </button>
               ))}
             </div>
@@ -298,21 +319,21 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
 
           {/* Action-Specific Fields */}
           {type === 'http_request' && (
-            <div className="space-y-4 pt-2 border-t border-slate-800/80">
-              <div className="flex items-start gap-2 p-2.5 rounded-lg bg-sky-500/10 border border-sky-500/20 text-xs text-sky-300">
-                <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5 text-sky-400" />
+            <div className="space-y-4 pt-2 border-t border-forge-border">
+              <div className="flex items-start gap-2 p-3 rounded-lg bg-[var(--info-subtle)] border border-[var(--info)]/20 text-xs text-[var(--info)]">
+                <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
                 <span>
-                  SSRF Protection Active: Outbound calls to localhost, private IP ranges (RFC 1918), and cloud metadata are strictly blocked.
+                  SSRF Protection Active: Outbound calls to localhost, RFC 1918 private subnets, and cloud metadata endpoints are strictly blocked by the server execution engine.
                 </span>
               </div>
 
-              <div className="grid grid-cols-4 gap-3">
-                <div className="col-span-1">
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Method</label>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div className="sm:col-span-1">
+                  <label className="block text-xs font-medium text-forge-text mb-1">Method</label>
                   <select
                     value={httpMethod}
                     onChange={(e) => setHttpMethod(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-semibold text-forge-text focus:outline-none focus:border-forge-accent"
                   >
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
@@ -320,39 +341,39 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
                     <option value="DELETE">DELETE</option>
                   </select>
                 </div>
-                <div className="col-span-3">
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Endpoint URL <span className="text-rose-400">*</span>
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-medium text-forge-text mb-1">
+                    Endpoint URL <span className="text-forge-danger">*</span>
                   </label>
                   <input
                     type="url"
                     value={httpUrl}
                     onChange={(e) => setHttpUrl(e.target.value)}
                     placeholder="https://api.example.com/v1/resource"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Headers (JSON)</label>
+                <label className="block text-xs font-medium text-forge-text mb-1">Headers (JSON)</label>
                 <textarea
                   rows={2}
                   value={httpHeadersStr}
                   onChange={(e) => setHttpHeadersStr(e.target.value)}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                  className="w-full p-2.5 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                 />
               </div>
 
               {['POST', 'PUT'].includes(httpMethod) && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Request Body (JSON)</label>
+                  <label className="block text-xs font-medium text-forge-text mb-1">Request Body (JSON)</label>
                   <textarea
                     rows={3}
                     value={httpBodyStr}
                     onChange={(e) => setHttpBodyStr(e.target.value)}
                     placeholder='{"key": "value"}'
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="w-full p-2.5 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                   />
                 </div>
               )}
@@ -360,13 +381,13 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
           )}
 
           {type === 'json_transform' && (
-            <div className="space-y-4 pt-2 border-t border-slate-800/80">
+            <div className="space-y-4 pt-2 border-t border-forge-border">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1">Operation</label>
+                <label className="block text-xs font-medium text-forge-text mb-1">Operation</label>
                 <select
                   value={transformOp}
                   onChange={(e) => setTransformOp(e.target.value as any)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs text-forge-text focus:outline-none focus:border-forge-accent"
                 >
                   <option value="select_path">Select Path (Extract Value via Dot Notation)</option>
                   <option value="rename_keys">Rename Keys (Remap Key Names)</option>
@@ -377,64 +398,64 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
 
               {transformOp === 'select_path' && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">
-                    Path Expression <span className="text-rose-400">*</span>
+                  <label className="block text-xs font-medium text-forge-text mb-1">
+                    Path Expression <span className="text-forge-danger">*</span>
                   </label>
                   <input
                     type="text"
                     value={transformPath}
                     onChange={(e) => setTransformPath(e.target.value)}
                     placeholder="e.g. input.order.amount or steps.prev_step.output.id"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                   />
                 </div>
               )}
 
               {transformOp === 'rename_keys' && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Mappings (JSON)</label>
+                  <label className="block text-xs font-medium text-forge-text mb-1">Mappings (JSON)</label>
                   <textarea
                     rows={3}
                     value={transformMappingsStr}
                     onChange={(e) => setTransformMappingsStr(e.target.value)}
                     placeholder='{"old_key": "new_key"}'
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="w-full p-2.5 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                   />
                 </div>
               )}
 
               {transformOp === 'construct_object' && (
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Template (JSON)</label>
+                  <label className="block text-xs font-medium text-forge-text mb-1">Template (JSON)</label>
                   <textarea
                     rows={4}
                     value={transformTemplateStr}
                     onChange={(e) => setTransformTemplateStr(e.target.value)}
                     placeholder='{"order_id": "$input.id", "status": "processed"}'
-                    className="w-full p-2.5 bg-slate-950 border border-slate-800 rounded-lg text-xs font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                    className="w-full p-2.5 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                   />
-                  <p className="mt-1 text-[11px] text-slate-500">Values starting with $ are dynamically resolved from context.</p>
+                  <p className="mt-1 text-[11px] text-forge-text-muted">Values starting with $ are dynamically resolved from context.</p>
                 </div>
               )}
 
               {transformOp === 'type_convert' && (
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Source Path</label>
+                    <label className="block text-xs font-medium text-forge-text mb-1">Source Path</label>
                     <input
                       type="text"
                       value={transformPath}
                       onChange={(e) => setTransformPath(e.target.value)}
                       placeholder="input.count"
-                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">Target Type</label>
+                    <label className="block text-xs font-medium text-forge-text mb-1">Target Type</label>
                     <select
                       value={transformTargetType}
                       onChange={(e) => setTransformTargetType(e.target.value as any)}
-                      className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                      className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs text-forge-text focus:outline-none focus:border-forge-accent"
                     >
                       <option value="string">String</option>
                       <option value="integer">Integer</option>
@@ -449,24 +470,24 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
           )}
 
           {type === 'condition' && (
-            <div className="space-y-4 pt-2 border-t border-slate-800/80">
-              <div className="grid grid-cols-3 gap-3">
+            <div className="space-y-4 pt-2 border-t border-forge-border">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Left Operand (Path)</label>
+                  <label className="block text-xs font-medium text-forge-text mb-1">Left Operand (Path)</label>
                   <input
                     type="text"
                     value={condLeft}
                     onChange={(e) => setCondLeft(e.target.value)}
                     placeholder="steps.step1.output.status"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Operator</label>
+                  <label className="block text-xs font-medium text-forge-text mb-1">Operator</label>
                   <select
                     value={condOp}
                     onChange={(e) => setCondOp(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs text-forge-text focus:outline-none focus:border-forge-accent"
                   >
                     <option value="equals">== Equals</option>
                     <option value="not_equals">!= Not Equals</option>
@@ -478,14 +499,14 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-300 mb-1">Right Operand</label>
+                  <label className="block text-xs font-medium text-forge-text mb-1">Right Operand</label>
                   <input
                     type="text"
                     value={condRight}
                     disabled={['exists', 'not_exists'].includes(condOp)}
                     onChange={(e) => setCondRight(e.target.value)}
                     placeholder="200 or 'paid'"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm font-mono text-slate-100 focus:outline-none focus:border-emerald-500 disabled:opacity-40"
+                    className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent disabled:opacity-40"
                   />
                 </div>
               </div>
@@ -493,22 +514,22 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
           )}
 
           {/* Retry Settings */}
-          <div className="pt-2 border-t border-slate-800/80">
-            <h4 className="text-xs font-semibold text-slate-300 mb-2">Retry Policy</h4>
-            <div className="grid grid-cols-2 gap-3">
+          <div className="pt-2 border-t border-forge-border">
+            <h4 className="text-xs font-semibold text-forge-text mb-2">Retry Policy</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Max Retry Attempts</label>
+                <label className="block text-xs font-medium text-forge-text-secondary mb-1">Max Retry Attempts</label>
                 <input
                   type="number"
                   min={1}
                   max={5}
                   value={maxAttempts}
                   onChange={(e) => setMaxAttempts(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Backoff Factor</label>
+                <label className="block text-xs font-medium text-forge-text-secondary mb-1">Backoff Factor</label>
                 <input
                   type="number"
                   min={1}
@@ -516,7 +537,7 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
                   step={0.5}
                   value={backoffFactor}
                   onChange={(e) => setBackoffFactor(Number(e.target.value))}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-emerald-500"
+                  className="w-full px-3 py-2 bg-forge-surface-secondary border border-forge-border rounded-lg text-xs font-mono text-forge-text focus:outline-none focus:border-forge-accent"
                 />
               </div>
             </div>
@@ -524,18 +545,18 @@ export const StepConfigModal: React.FC<StepConfigModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-slate-800 bg-slate-850">
+        <div className="flex items-center justify-end gap-2.5 px-6 py-4 border-t border-forge-border bg-forge-surface-secondary/50">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white bg-slate-800 border border-slate-700 rounded-lg transition-colors"
+            className="px-4 py-2 text-xs font-medium text-forge-text-secondary hover:text-forge-text bg-forge-surface border border-forge-border rounded-lg transition-colors shadow-2xs"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleValidateAndSave}
-            className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-500 rounded-lg transition-colors shadow-sm"
+            className="px-4 py-2 text-xs font-medium text-white bg-forge-accent hover:bg-forge-accent-hover rounded-lg transition-colors shadow-xs"
           >
             Save Action
           </button>

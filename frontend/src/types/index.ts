@@ -148,3 +148,15 @@ export interface ValidationResult {
   errors: string[];
   warnings: string[];
 }
+
+export interface ScheduledJob {
+  id: string;
+  workflow_id: string;
+  workflow_name: string;
+  cron_expression?: string | null;
+  interval_seconds?: number | null;
+  next_run_at?: string | null;
+  last_run_at?: string | null;
+  enabled: boolean;
+}
+
