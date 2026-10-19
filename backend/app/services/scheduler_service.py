@@ -2,6 +2,7 @@ import asyncio
 import copy
 import logging
 from datetime import datetime, timezone, timedelta
+from typing import Optional
 from croniter import croniter
 from sqlalchemy import select, update
 from sqlalchemy.orm import selectinload

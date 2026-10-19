@@ -47,7 +47,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-flowforge}
       REDIS_URL: redis://redis:6379/0
       USE_REDIS_QUEUE: "true"
-      SECRET_KEY: ${SECRET_KEY:-production_secret_key_needs_override_32_chars_long}
+      SECRET_KEY: ${SECRET_KEY:-flowforge_production_secure_secret_key_64_characters_hash_signature_token}
       CORS_ORIGINS: '["http://localhost:5173", "http://localhost:3000", "http://localhost:80"]'
     ports:
       - "8000:8000"
@@ -64,13 +64,15 @@ services:
     container_name: flowforge_worker
     restart: unless-stopped
     command: python -m backend.app.worker
+    healthcheck:
+      disable: true
     environment:
       ENVIRONMENT: production
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-flowforge}
       REDIS_URL: redis://redis:6379/0
       USE_REDIS_QUEUE: "true"
       WORKER_CONCURRENCY: 5
-      SECRET_KEY: ${SECRET_KEY:-production_secret_key_needs_override_32_chars_long}
+      SECRET_KEY: ${SECRET_KEY:-flowforge_production_secure_secret_key_64_characters_hash_signature_token}
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,13 +86,15 @@ services:
     container_name: flowforge_scheduler
     restart: unless-stopped
     command: python -m backend.app.scheduler_worker
+    healthcheck:
+      disable: true
     environment:
       ENVIRONMENT: production
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-flowforge}
       REDIS_URL: redis://redis:6379/0
       USE_REDIS_QUEUE: "true"
       SCHEDULER_CHECK_INTERVAL_SECONDS: 10
-      SECRET_KEY: ${SECRET_KEY:-production_secret_key_needs_override_32_chars_long}
+      SECRET_KEY: ${SECRET_KEY:-flowforge_production_secure_secret_key_64_characters_hash_signature_token}
     depends_on:
       postgres:
         condition: service_healthy
