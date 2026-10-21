@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Zap, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { ThemeToggle } from '../components/common/ThemeToggle';
+import { PasswordInput } from '../components/common/PasswordInput';
 
 export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -74,13 +75,11 @@ export const Login: React.FC = () => {
 
           <div>
             <label className="block text-xs font-medium text-forge-text mb-1.5">Password</label>
-            <input
-              type="password"
+            <PasswordInput
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 bg-forge-surface-secondary border border-forge-border rounded-lg text-sm text-forge-text placeholder:text-forge-text-muted focus:outline-none focus:border-forge-accent focus:ring-2 focus:ring-[var(--focus-ring)] transition-colors"
             />
           </div>
 

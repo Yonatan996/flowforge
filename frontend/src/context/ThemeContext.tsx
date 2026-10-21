@@ -1,64 +1,87 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light';
+export type ThemeMode = 'dark' | 'light' | 'system';
+export type ResolvedTheme = 'dark' | 'light';
+export type Theme = ResolvedTheme;
 
-interface ThemeContextType {
-  theme: Theme;
+export interface ThemeContextType {
+  theme: ResolvedTheme;
+  resolvedTheme: ResolvedTheme;
+  themeMode: ThemeMode;
   toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
+  setTheme: (theme: ThemeMode) => void;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const getSystemTheme = (): ResolvedTheme => {
+  if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    return 'light';
+  }
+  return 'dark';
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(() => {
+  const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
     const saved = localStorage.getItem('flowforge_theme');
-    if (saved === 'dark' || saved === 'light') {
-      return saved;
+    if (saved === 'dark' || saved === 'light' || saved === 'system') {
+      return saved as ThemeMode;
     }
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light';
-    }
-    return 'dark';
+    return 'system';
   });
+
+  const [systemTheme, setSystemTheme] = useState<ResolvedTheme>(getSystemTheme);
+
+  // Listen to OS preference changes
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setSystemTheme(e.matches ? 'dark' : 'light');
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  const resolvedTheme: ResolvedTheme = themeMode === 'system' ? systemTheme : themeMode;
 
   useEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
+    if (resolvedTheme === 'dark') {
       root.classList.add('dark');
       root.classList.remove('light');
     } else {
       root.classList.add('light');
       root.classList.remove('dark');
     }
-    root.style.colorScheme = theme;
-    localStorage.setItem('flowforge_theme', theme);
-  }, [theme]);
-
-  // Listen to OS preference changes if no manual override
-  useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e: MediaQueryListEvent) => {
-      const saved = localStorage.getItem('flowforge_theme');
-      if (!saved) {
-        setThemeState(e.matches ? 'dark' : 'light');
-      }
-    };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
-  }, []);
+    root.style.colorScheme = resolvedTheme;
+    localStorage.setItem('flowforge_theme', themeMode);
+  }, [themeMode, resolvedTheme]);
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setThemeModeState((prev) => {
+      if (prev === 'dark') return 'light';
+      if (prev === 'light') return 'system';
+      return 'dark';
+    });
   };
 
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
+  const setTheme = (mode: ThemeMode) => {
+    setThemeModeState(mode);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme, setTheme }}>
+    <ThemeContext.Provider
+      value={{
+        theme: resolvedTheme,
+        resolvedTheme,
+        themeMode,
+        toggleTheme,
+        setTheme,
+        setThemeMode: setTheme,
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );

@@ -20,4 +20,10 @@ export const authApi = {
     }),
 
   me: (): Promise<User> => apiClient<User>('/auth/me'),
+
+  changePassword: (currentPassword: string, newPassword: string): Promise<{ message: string }> =>
+    apiClient<{ message: string }>('/auth/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    }),
 };

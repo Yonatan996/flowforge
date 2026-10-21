@@ -6,7 +6,7 @@ from backend.app.core.database import get_db
 from backend.app.core.security import create_access_token
 from backend.app.core.dependencies import get_current_user, rate_limiter
 from backend.app.models.user import User
-from backend.app.schemas.user import UserRegister, UserLogin, UserResponse, Token
+from backend.app.schemas.user import UserRegister, UserLogin, UserResponse, Token, ChangePasswordRequest
 from backend.app.services.auth_service import auth_service
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -64,3 +64,16 @@ async def logout(response: Response, current_user: User = Depends(get_current_us
 @router.get("/me", response_model=UserResponse)
 async def get_me(current_user: User = Depends(get_current_user)):
     return UserResponse.model_validate(current_user)
+
+
+@router.post("/change-password")
+async def change_password(
+    data: ChangePasswordRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        await auth_service.change_password(db, current_user, data.current_password, data.new_password)
+        return {"message": "Password changed successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

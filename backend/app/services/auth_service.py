@@ -38,5 +38,16 @@ class AuthService:
             return None
         return user
 
+    @staticmethod
+    async def change_password(db: AsyncSession, user: User, current_password: str, new_password: str) -> None:
+        if not verify_password(current_password, user.password_hash):
+            raise ValueError("Current password is incorrect")
+        if current_password == new_password:
+            raise ValueError("New password must be different from current password")
+        user.password_hash = hash_password(new_password)
+        db.add(user)
+        await db.commit()
+        await db.refresh(user)
+
 
 auth_service = AuthService()

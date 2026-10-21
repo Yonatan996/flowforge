@@ -1,12 +1,67 @@
-import React from 'react';
-import { User, Terminal, LogOut, ExternalLink, Sun, Moon, Palette } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  User,
+  Terminal,
+  LogOut,
+  ExternalLink,
+  Sun,
+  Moon,
+  Palette,
+  Laptop,
+  KeyRound,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { PasswordInput } from '../components/common/PasswordInput';
+import { authApi } from '../api/auth';
 
 export const Settings: React.FC = () => {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { themeMode, resolvedTheme, setTheme } = useTheme();
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (!currentPassword) {
+      setPasswordError('Please enter your current password.');
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirmation do not match.');
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const res = await authApi.changePassword(currentPassword, newPassword);
+      setPasswordSuccess(res.message || 'Password successfully updated.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setPasswordError(err.message || 'Failed to change password. Please check your current password.');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   return (
     <div className="p-6 md:p-8 space-y-8 max-w-4xl mx-auto w-full">
@@ -33,12 +88,12 @@ export const Settings: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
           <button
             type="button"
             onClick={() => setTheme('dark')}
             className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all ${
-              theme === 'dark'
+              themeMode === 'dark'
                 ? 'border-forge-accent bg-[var(--accent-subtle)] ring-1 ring-forge-accent shadow-xs'
                 : 'border-forge-border bg-forge-surface-secondary hover:bg-forge-surface-hover hover:border-forge-border-subtle'
             }`}
@@ -48,15 +103,15 @@ export const Settings: React.FC = () => {
             </div>
             <div>
               <div className="text-sm font-semibold text-forge-text flex items-center gap-2">
-                <span>Dark Workspace</span>
-                {theme === 'dark' && (
+                <span>Dark</span>
+                {themeMode === 'dark' && (
                   <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-forge-accent text-white font-semibold">
                     ACTIVE
                   </span>
                 )}
               </div>
               <p className="text-xs text-forge-text-secondary mt-1">
-                Deep charcoal surfaces, reduced glare, and high-contrast developer syntax
+                Deep charcoal surfaces and high-contrast syntax
               </p>
             </div>
           </button>
@@ -65,7 +120,7 @@ export const Settings: React.FC = () => {
             type="button"
             onClick={() => setTheme('light')}
             className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all ${
-              theme === 'light'
+              themeMode === 'light'
                 ? 'border-forge-accent bg-[var(--accent-subtle)] ring-1 ring-forge-accent shadow-xs'
                 : 'border-forge-border bg-forge-surface-secondary hover:bg-forge-surface-hover hover:border-forge-border-subtle'
             }`}
@@ -75,19 +130,128 @@ export const Settings: React.FC = () => {
             </div>
             <div>
               <div className="text-sm font-semibold text-forge-text flex items-center gap-2">
-                <span>Light Workspace</span>
-                {theme === 'light' && (
+                <span>Light</span>
+                {themeMode === 'light' && (
                   <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-forge-accent text-white font-semibold">
                     ACTIVE
                   </span>
                 )}
               </div>
               <p className="text-xs text-forge-text-secondary mt-1">
-                Crisp daylight surfaces, neutral borders, and high legibility typography
+                Crisp daylight surfaces and neutral borders
+              </p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTheme('system')}
+            className={`p-4 rounded-xl border text-left flex items-start gap-3 transition-all ${
+              themeMode === 'system'
+                ? 'border-forge-accent bg-[var(--accent-subtle)] ring-1 ring-forge-accent shadow-xs'
+                : 'border-forge-border bg-forge-surface-secondary hover:bg-forge-surface-hover hover:border-forge-border-subtle'
+            }`}
+          >
+            <div className="p-2 rounded-lg bg-forge-surface border border-forge-border text-forge-accent shadow-2xs">
+              <Laptop className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-forge-text flex items-center gap-2">
+                <span>System</span>
+                {themeMode === 'system' && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-forge-accent text-white font-semibold">
+                    ACTIVE
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-forge-text-secondary mt-1">
+                Syncs with OS (currently {resolvedTheme})
               </p>
             </div>
           </button>
         </div>
+      </div>
+
+      {/* Security & Password Card */}
+      <div className="rounded-xl border border-forge-border bg-forge-surface p-6 shadow-xs space-y-4 transition-colors">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-lg bg-[var(--accent-subtle)] border border-forge-accent/20 text-forge-accent">
+            <KeyRound className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-semibold text-forge-text">Security & Password</h2>
+            <p className="text-xs text-forge-text-secondary">
+              Update your account credentials and password authentication
+            </p>
+          </div>
+        </div>
+
+        {passwordError && (
+          <div className="p-3.5 rounded-lg bg-[var(--danger-subtle)] border border-[var(--danger)]/30 text-[var(--danger)] text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{passwordError}</span>
+          </div>
+        )}
+
+        {passwordSuccess && (
+          <div className="p-3.5 rounded-lg bg-[var(--success-subtle)] border border-[var(--success)]/30 text-[var(--success)] text-xs flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" />
+            <span>{passwordSuccess}</span>
+          </div>
+        )}
+
+        <form onSubmit={handlePasswordSubmit} className="space-y-4 max-w-xl">
+          <div>
+            <label className="block text-xs font-medium text-forge-text mb-1.5">
+              Current Password
+            </label>
+            <PasswordInput
+              required
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              placeholder="Enter current password"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-forge-text mb-1.5">
+                New Password
+              </label>
+              <PasswordInput
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="At least 8 characters"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-forge-text mb-1.5">
+                Confirm New Password
+              </label>
+              <PasswordInput
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Repeat new password"
+              />
+            </div>
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={passwordLoading}
+              className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-white bg-forge-accent hover:bg-forge-accent-hover rounded-lg transition-colors shadow-2xs disabled:opacity-50"
+            >
+              {passwordLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+              <span>Change Password</span>
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Account Profile Card */}

@@ -101,3 +101,51 @@ def test_production_secret_key_enforcement(monkeypatch):
             ENVIRONMENT="production",
             SECRET_KEY="too_short"
         )
+
+
+@pytest.mark.asyncio
+async def test_change_password(client: AsyncClient, auth_headers: dict):
+    # Register & login
+    reg_resp = await client.post("/api/v1/auth/register", json={
+        "email": "charlie@flowforge.dev",
+        "password": "OldPassword123!"
+    })
+    assert reg_resp.status_code == 201
+    token = reg_resp.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Wrong current password fails
+    bad_resp = await client.post("/api/v1/auth/change-password", headers=headers, json={
+        "current_password": "WrongPassword!",
+        "new_password": "BrandNewPassword123!"
+    })
+    assert bad_resp.status_code == 400
+    assert "incorrect" in bad_resp.json()["detail"].lower()
+
+    # Same password fails
+    same_resp = await client.post("/api/v1/auth/change-password", headers=headers, json={
+        "current_password": "OldPassword123!",
+        "new_password": "OldPassword123!"
+    })
+    assert same_resp.status_code == 400
+
+    # Short new password fails schema validation (422)
+    short_resp = await client.post("/api/v1/auth/change-password", headers=headers, json={
+        "current_password": "OldPassword123!",
+        "new_password": "short"
+    })
+    assert short_resp.status_code == 422
+
+    # Successful change
+    ok_resp = await client.post("/api/v1/auth/change-password", headers=headers, json={
+        "current_password": "OldPassword123!",
+        "new_password": "BrandNewPassword123!"
+    })
+    assert ok_resp.status_code == 200
+
+    # Login with new password works
+    login_new = await client.post("/api/v1/auth/login", json={
+        "email": "charlie@flowforge.dev",
+        "password": "BrandNewPassword123!"
+    })
+    assert login_new.status_code == 200

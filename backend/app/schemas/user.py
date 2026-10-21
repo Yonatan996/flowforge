@@ -13,6 +13,11 @@ class UserLogin(BaseModel):
     password: str
 
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(..., min_length=8, max_length=128, description="Password must be at least 8 characters")
+
+
 class UserResponse(BaseModel):
     id: str
     email: EmailStr
